@@ -1,0 +1,13 @@
+import { FC } from "react";
+import { IIconProps } from "./types";
+
+export const {{>name}}: FC<IIconProps> = ({ ariaHidden = true, ...props }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    aria-hidden={ariaHidden}
+    {...props}
+  ></svg>
+);

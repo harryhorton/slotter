@@ -1,0 +1,13 @@
+import { FC } from "react";
+import { {{>name}} } from "./{{>name}}";
+
+export default {
+  title: "Components/{{>name}}",
+  component: {{>name}},
+};
+
+export const Primary: FC = () => (
+  <div className="p-3">
+    <{{>name}}>Content</{{>name}}>
+  </div>
+);

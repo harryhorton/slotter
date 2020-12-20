@@ -1,0 +1,30 @@
+{
+  "name": "slotter",
+  "version": "1.0.0",
+  "description": "CMS",
+  "main": "index.js",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "types",
+      "editor"
+    ],
+    "nohoist": [
+      "**/editor/**",
+      "**/editor"
+    ]
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harryhorton/slotter.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/harryhorton/slotter/issues"
+  },
+  "homepage": "https://github.com/harryhorton/slotter#readme"
+}

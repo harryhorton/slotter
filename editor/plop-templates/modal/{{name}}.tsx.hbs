@@ -1,0 +1,24 @@
+import { FC } from "react";
+import { Modal, IModalProps } from "../../components/Modal";
+
+interface I{{>name}}Props extends IModalProps {}
+
+export const {{>name}}: FC<I{{>name}}Props> = ({
+  isOpen,
+  onClose,
+}) => {
+  return (
+    <{{>name}}
+      isOpen={isOpen}
+      onClose={onClose}
+    />
+  );
+};
+
+interface I{{>name}}ViewProps extends IModalProps {}
+
+export const {{>name}}View: FC<I{{>name}}ViewProps> = ({
+  ...props
+}) => {
+  return <Modal {...props}>Content</Modal>;
+};
