@@ -1,7 +1,8 @@
 import { FC } from "react";
 import { useParams } from "react-router-dom";
 import { useAppContext } from "../../providers/app";
-
+import { Link } from "react-router-dom";
+import { createDocumentLink } from "../../router";
 interface IDocumentListProps {}
 
 export const DocumentList: FC<IDocumentListProps> = () => {
@@ -40,7 +41,11 @@ export const DocumentList: FC<IDocumentListProps> = () => {
       ) : (
         <ul>
           {selectedDocuments.map((doc) => {
-            return <li>{doc.id}</li>;
+            return (
+              <li>
+                <Link to={createDocumentLink(doc.id)}>{doc.id}</Link>
+              </li>
+            );
           })}
         </ul>
       )}
