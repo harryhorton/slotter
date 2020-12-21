@@ -2,12 +2,17 @@ export interface IFieldType {
   id: string;
 }
 
+export interface IFieldProps<T> extends Partial<IField> {
+  onChange: (value: T) => void;
+  value: T;
+}
 export interface IField {
   id: string;
   label: string;
-  default: any;
-  value: any;
-  type: string;
+  defaultValue?: any;
+  value?: any;
+  fieldType: string;
+  placeholder?: string;
 }
 
 export interface IComponentType {
@@ -30,14 +35,21 @@ export interface IDocumentType {
   components?: IComponent[];
 }
 
+export interface IFieldData {
+  fieldType: string;
+  data: any;
+}
+
 export interface IDocument {
   id: string;
   type: string;
+  fieldData?: Record<string, any>;
 }
 
 export interface ISiteData {
   documents: IDocument[];
   documentTypes: IDocumentType[];
+  fieldTypes: IFieldType[];
 }
 
 export interface ILink {
