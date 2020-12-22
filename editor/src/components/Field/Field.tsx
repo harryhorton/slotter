@@ -5,6 +5,7 @@ import { TextField } from "../TextField";
 interface IFieldComponentProps extends IFieldProps<any> {}
 
 export const Field: FC<IFieldComponentProps> = ({ fieldType, ...props }) => {
+  
   switch (fieldType) {
     case "text":
       return <TextField {...props} />;

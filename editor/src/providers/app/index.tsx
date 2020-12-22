@@ -12,6 +12,7 @@ export interface AppContext {
   setAppState: React.Dispatch<React.SetStateAction<AppState>>;
 }
 const defaultSiteData: ISiteData = {
+  fieldTypes: [],
   documents: [],
   documentTypes: [],
 };
