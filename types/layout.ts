@@ -9,13 +9,13 @@ export type ComponentConfig = Record<string, any>;
 
 export interface ComponentInstance {
   id: string;
+  name?: string;
   componentType: ComponentType["id"];
-  config: ComponentConfig;
-  children: ComponentInstance[];
+  config?: ComponentConfig;
+  children?: ComponentInstance[];
 }
 
 export interface LayoutInstance {
   id: string;
-  components: ComponentInstance;
+  components: ComponentInstance[];
 }
-
