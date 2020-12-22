@@ -1,4 +1,4 @@
-import { ISidebar } from "@slotter/types";
+import { AppSidebarInstance } from "@slotter/types";
 import { FC } from "react";
 import { AppSidebar } from "./AppSidebar";
 
@@ -7,7 +7,7 @@ export default {
   component: AppSidebar,
 };
 
-const sampleSidebar: ISidebar = {
+const sampleSidebar: AppSidebarInstance = {
   items: [
     {
       label: "only label",

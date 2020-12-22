@@ -1,9 +1,14 @@
-import { IDocument, IDocumentType, IFieldType, ISidebar } from "@slotter/types";
+import {
+  DocumentInstance,
+  DocumentType,
+  FieldType,
+  AppSidebarInstance,
+} from "@slotter/types";
 import { AppState } from "../providers/app";
 
-const fieldTypes: IFieldType[] = [{ id: "text" }];
+const fieldTypes: FieldType[] = [{ id: "text" }];
 
-const pageDocumentType: IDocumentType = {
+const pageDocumentType: DocumentType = {
   id: "page",
   label: "Page",
   labelPlural: "Pages",
@@ -21,32 +26,36 @@ const pageDocumentType: IDocumentType = {
       placeholder: "page slug",
     },
     {
-      id:'notReal',
-      label:'not real',
-      fieldType:'notARealField'
-    }
+      id: "notReal",
+      label: "not real",
+      fieldType: "notARealField",
+    },
   ],
 };
 
-const postDocumentType: IDocumentType = {
+const postDocumentType: DocumentType = {
   id: "post",
   label: "Post",
   labelPlural: "Posts",
 };
 
-const samplePages: IDocument[] = [
-  { id: "page1", type: pageDocumentType.id, fieldData: { title: "Page 1" } },
-  { id: "page2", type: pageDocumentType.id },
-  { id: "page3", type: pageDocumentType.id },
+const samplePages: DocumentInstance[] = [
+  {
+    id: "page1",
+    documentType: pageDocumentType.id,
+    fieldData: { title: "Page 1" },
+  },
+  { id: "page2", documentType: pageDocumentType.id },
+  { id: "page3", documentType: pageDocumentType.id },
 ];
 
-const samplePosts: IDocument[] = [
-  { id: "post1", type: postDocumentType.id },
-  { id: "post2", type: postDocumentType.id },
-  { id: "post3", type: postDocumentType.id },
+const samplePosts: DocumentInstance[] = [
+  { id: "post1", documentType: postDocumentType.id },
+  { id: "post2", documentType: postDocumentType.id },
+  { id: "post3", documentType: postDocumentType.id },
 ];
 
-const sidebar: ISidebar = {
+const appSidebar: AppSidebarInstance = {
   items: [
     {
       label: pageDocumentType.labelPlural!,
@@ -60,10 +69,12 @@ const sidebar: ISidebar = {
 };
 
 export const devAppState: AppState = {
-  adminLayout: { sidebar },
-  siteData: {
+  adminConfig: {
+    appSidebar,
     fieldTypes,
     documentTypes: [pageDocumentType, postDocumentType],
+  },
+  siteData: {
     documents: [...samplePages, ...samplePosts],
   },
 };

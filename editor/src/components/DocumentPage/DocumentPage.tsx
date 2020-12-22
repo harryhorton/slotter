@@ -1,7 +1,7 @@
+import { DocumentFieldData } from "@slotter/types";
 import { FC, useState } from "react";
-import { useAppContext } from "../../providers/app";
 import { useParams } from "react-router-dom";
-import { IFieldData } from "@slotter/types";
+import { useAppContext } from "../../providers/app";
 import { Field } from "../Field";
 
 interface IDocumentPageProps {}
@@ -9,21 +9,22 @@ interface IDocumentPageProps {}
 export const DocumentPage: FC<IDocumentPageProps> = () => {
   const { appState } = useAppContext();
   const {
-    siteData: { documentTypes, documents },
+    siteData: { documents },
+    adminConfig: { documentTypes },
   } = appState;
   const { documentId } = useParams<{ documentId: string }>();
 
   const selectedDocument = documents.find((doc) => doc.id === documentId);
   const documentType = documentTypes.find(
-    (type) => type.id === selectedDocument?.type
+    (type) => type.id === selectedDocument?.documentType
   );
-  const defaultFields =
-    documentType?.fields?.reduce<Record<string, IFieldData>>((prev, field) => {
+  const defaultFieldData =
+    documentType?.fields?.reduce<DocumentFieldData>((prev, field) => {
       prev[field.id] = field.defaultValue;
       return prev;
     }, {}) ?? {};
-  const [fieldData, setFieldData] = useState<Record<string, IFieldData>>({
-    ...defaultFields,
+  const [fieldData, setFieldData] = useState<DocumentFieldData>({
+    ...defaultFieldData,
     ...selectedDocument?.fieldData,
   });
 
@@ -38,7 +39,7 @@ export const DocumentPage: FC<IDocumentPageProps> = () => {
   if (!documentType) {
     return (
       <div>
-        <h1>Document Type "{selectedDocument.type}" not found</h1>
+        <h1>Document Type "{selectedDocument.documentType}" not found</h1>
         <ul></ul>
       </div>
     );

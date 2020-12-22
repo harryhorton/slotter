@@ -1,9 +1,9 @@
-import { ISidebar } from "@slotter/types";
+import { AppSidebarInstance } from "@slotter/types";
 import { FC } from "react";
 import { SidebarItem } from "../SidebarItem";
 
 interface IAppSidebarProps {
-  sidebar: ISidebar;
+  sidebar: AppSidebarInstance;
 }
 
 export const AppSidebar: FC<IAppSidebarProps> = ({ sidebar }) => {

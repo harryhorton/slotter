@@ -1,26 +1,26 @@
 import { createContext, FC, useContext, useState } from "react";
-import { ISiteData, IAdminLayout } from "@slotter/types";
+import { SiteData, AdminConfig } from "@slotter/types";
 import { devAppState } from "../../__fixtures__/dev-app-state";
 
 export interface AppState {
-  siteData: ISiteData;
-  adminLayout: IAdminLayout;
+  siteData: SiteData;
+  adminConfig: AdminConfig;
 }
 
 export interface AppContext {
   appState: AppState;
   setAppState: React.Dispatch<React.SetStateAction<AppState>>;
 }
-const defaultSiteData: ISiteData = {
-  fieldTypes: [],
+const defaultSiteData: SiteData = {
   documents: [],
-  documentTypes: [],
 };
 
 const defaultAppState: AppState = {
   siteData: defaultSiteData,
-  adminLayout: {
-    sidebar: { items: [{ label: "label" }] },
+  adminConfig: {
+    documentTypes: [],
+    fieldTypes: [],
+    appSidebar: { items: [{ label: "label" }] },
   },
 };
 

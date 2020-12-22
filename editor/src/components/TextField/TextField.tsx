@@ -1,7 +1,7 @@
-import { IField, IFieldProps } from "@slotter/types";
+import { FieldProps } from "@slotter/types";
 import { FC } from "react";
 
-interface ITextFieldProps extends IFieldProps<string> {}
+interface ITextFieldProps extends FieldProps<string> {}
 
 export const TextField: FC<ITextFieldProps> = ({
   onChange,
@@ -13,7 +13,9 @@ export const TextField: FC<ITextFieldProps> = ({
 }) => {
   return (
     <label className="block mb-2">
-      <span className="block mb-1 text-gray-800 text-sm font-semibold">{label}</span>
+      <span className="block mb-1 text-gray-800 text-sm font-semibold">
+        {label}
+      </span>
       <input
         className="block w-full border border-gray-300 rounded px-3"
         type="text"

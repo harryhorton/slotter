@@ -5,7 +5,7 @@ import { Router } from "./router";
 
 export const App: FC = () => {
   const { appState } = useAppContext();
-  const sidebar = appState.adminLayout.sidebar;
+  const sidebar = appState.adminConfig.appSidebar;
 
   return (
     <div className="text-gray-900 h-screen flex flex-col">

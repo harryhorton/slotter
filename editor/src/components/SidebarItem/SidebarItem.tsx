@@ -1,9 +1,9 @@
-import { ILink, ISidebarItem } from "@slotter/types";
+import { SidebarItemInstance } from "@slotter/types";
 import { FC } from "react";
 import { Link } from "react-router-dom";
 
 interface ISidebarItemProps {
-  item: ISidebarItem;
+  item: SidebarItemInstance;
 }
 
 export const SidebarItem: FC<ISidebarItemProps> = ({ item }) => {

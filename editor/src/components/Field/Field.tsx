@@ -1,8 +1,8 @@
 import { FC } from "react";
-import { IFieldProps } from "@slotter/types";
+import { FieldProps } from "@slotter/types";
 import { TextField } from "../TextField";
 
-interface IFieldComponentProps extends IFieldProps<any> {}
+interface IFieldComponentProps extends FieldProps<any> {}
 
 export const Field: FC<IFieldComponentProps> = ({ fieldType, ...props }) => {
   

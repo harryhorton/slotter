@@ -3,12 +3,13 @@ import { useParams } from "react-router-dom";
 import { useAppContext } from "../../providers/app";
 import { Link } from "react-router-dom";
 import { createDocumentLink } from "../../router";
-interface IDocumentListProps {}
+interface DocumentListProps {}
 
-export const DocumentList: FC<IDocumentListProps> = () => {
+export const DocumentList: FC<DocumentListProps> = () => {
   const { appState } = useAppContext();
   const {
-    siteData: { documentTypes, documents },
+    siteData: { documents },
+    adminConfig: { documentTypes },
   } = appState;
   const { documentType } = useParams<{ documentType: string }>();
 
@@ -25,7 +26,7 @@ export const DocumentList: FC<IDocumentListProps> = () => {
   }
 
   const selectedDocuments = documents.filter(
-    (doc) => doc.type === selectedDocumentType.id
+    (doc) => doc.documentType === selectedDocumentType.id
   );
 
   const titleText =
