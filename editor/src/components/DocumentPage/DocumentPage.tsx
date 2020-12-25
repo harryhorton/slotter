@@ -1,4 +1,4 @@
-import { DocumentFieldData } from "@slotter/types";
+import { FieldData } from "@slotter/types";
 import { FC, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useAppContext } from "../../providers/app";
@@ -19,11 +19,11 @@ export const DocumentPage: FC<IDocumentPageProps> = () => {
     (type) => type.id === selectedDocument?.documentType
   );
   const defaultFieldData =
-    documentType?.fields?.reduce<DocumentFieldData>((prev, field) => {
+    documentType?.fields?.reduce<FieldData>((prev, field) => {
       prev[field.id] = field.defaultValue;
       return prev;
     }, {}) ?? {};
-  const [fieldData, setFieldData] = useState<DocumentFieldData>({
+  const [fieldData, setFieldData] = useState<FieldData>({
     ...defaultFieldData,
     ...selectedDocument?.fieldData,
   });
@@ -53,7 +53,6 @@ export const DocumentPage: FC<IDocumentPageProps> = () => {
       </h1>
       <div>
         {documentType.fields?.map((field) => {
-          console.log(field, Field);
           return (
             <Field
               key={field.id}

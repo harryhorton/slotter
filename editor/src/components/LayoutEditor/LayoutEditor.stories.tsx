@@ -1,5 +1,7 @@
 import { FC } from "react";
+import { AppProvider } from "../../providers/app";
 import { LayoutEditor } from "./LayoutEditor";
+import { sampleLayout } from "./__fixtures__";
 
 export default {
   title: "Components/LayoutEditor",
@@ -8,6 +10,8 @@ export default {
 
 export const Primary: FC = () => (
   <div className="p-3">
-    <LayoutEditor>Content</LayoutEditor>
+    <AppProvider>
+      <LayoutEditor layout={sampleLayout}>Content</LayoutEditor>
+    </AppProvider>
   </div>
 );

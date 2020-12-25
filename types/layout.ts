@@ -2,6 +2,7 @@ import { FieldInstance } from "./field";
 
 export interface ComponentType {
   id: string;
+  label?: string;
   fields: FieldInstance[];
 }
 

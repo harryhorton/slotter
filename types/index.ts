@@ -1,5 +1,6 @@
 import { DocumentInstance, DocumentType } from "./document";
 import { FieldType } from "./field";
+import { ComponentType } from "./layout";
 import { AppSidebarInstance } from "./sidebar";
 
 export interface SiteData {
@@ -8,6 +9,7 @@ export interface SiteData {
 export interface AdminConfig {
   fieldTypes: FieldType[];
   documentTypes: DocumentType[];
+  componentTypes: ComponentType[];
   appSidebar: AppSidebarInstance;
 }
 

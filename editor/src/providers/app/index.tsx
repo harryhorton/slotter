@@ -18,6 +18,7 @@ const defaultSiteData: SiteData = {
 const defaultAppState: AppState = {
   siteData: defaultSiteData,
   adminConfig: {
+    componentTypes: [],
     documentTypes: [],
     fieldTypes: [],
     appSidebar: { items: [{ label: "label" }] },

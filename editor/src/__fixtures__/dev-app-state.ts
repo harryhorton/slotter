@@ -3,7 +3,9 @@ import {
   DocumentType,
   FieldType,
   AppSidebarInstance,
+  ComponentType,
 } from "@slotter/types";
+import { TextComponentType } from "../components/TextComponent";
 import { AppState } from "../providers/app";
 
 const fieldTypes: FieldType[] = [{ id: "text" }];
@@ -55,6 +57,8 @@ const samplePosts: DocumentInstance[] = [
   { id: "post3", documentType: postDocumentType.id },
 ];
 
+export const componentTypes: ComponentType[] = [TextComponentType];
+
 const appSidebar: AppSidebarInstance = {
   items: [
     {
@@ -72,6 +76,7 @@ export const devAppState: AppState = {
   adminConfig: {
     appSidebar,
     fieldTypes,
+    componentTypes,
     documentTypes: [pageDocumentType, postDocumentType],
   },
   siteData: {

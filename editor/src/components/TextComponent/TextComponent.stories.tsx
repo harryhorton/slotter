@@ -8,6 +8,6 @@ export default {
 
 export const Primary: FC = () => (
   <div className="p-3">
-    <TextComponent>Content</TextComponent>
+    {/* <TextComponent>Content</TextComponent> */}
   </div>
 );

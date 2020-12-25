@@ -1,4 +1,4 @@
-import { FieldInstance } from "./field";
+import { FieldData, FieldInstance } from "./field";
 
 export interface DocumentType {
   id: string;
@@ -8,10 +8,8 @@ export interface DocumentType {
   fields?: FieldInstance[];
 }
 
-export type DocumentFieldData = Record<string, any>;
-
 export interface DocumentInstance {
   id: string;
   documentType: DocumentType["id"];
-  fieldData?: DocumentFieldData;
+  fieldData?: FieldData;
 }
