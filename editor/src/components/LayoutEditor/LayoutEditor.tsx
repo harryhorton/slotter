@@ -1,15 +1,18 @@
 import { ComponentInstance, LayoutInstance } from "@slotter/types";
-import { useContext, useState } from "react";
-import { createContext, FC, MouseEvent } from "react";
-import { TextComponent } from "../TextComponent";
-import { LayoutEditorProvider, useLayoutEditor } from "./LayoutEditorProvider";
-import { componentTypes } from "./__fixtures__";
+import { createContext, FC, MouseEvent, useContext } from "react";
 import styled from "styled-components";
 import tw from "twin.macro";
-import { FieldEditor } from "../FieldEditor";
 import { useAppContext } from "../../providers/app";
-import { ContextMenuTrigger, ContextMenu, hideMenu } from "react-contextmenu";
+import { FieldEditor } from "../FieldEditor";
 import { RightClickMenu } from "../RightClickMenu";
+import { TextComponent } from "../TextComponent";
+import {
+  getComponentById,
+  LayoutEditorProvider,
+  useLayoutEditor,
+} from "./LayoutEditorProvider";
+import { componentTypes } from "./__fixtures__";
+import { v1 as uuid } from "uuid";
 
 export const ComponentHeirarchyItem = styled.li<{ isSelected: boolean }>(
   ({ isSelected }) => [
@@ -58,18 +61,36 @@ const ZProvider: FC<{ value?: number }> = ({ value, children }) => {
 
 const RenderedComponentInteractionBlock = styled.div<{ isSelected: boolean }>(
   ({ isSelected }) => [
-    tw`absolute w-full h-full left-0 top-0 cursor-pointer `,
+    tw`absolute w-full h-full left-0 top-0 cursor-pointer`,
     tw`bg-transparent text-transparent hover:text-white hover:border hover:border-blue-500 hover:bg-blue-500 hover:bg-opacity-50`,
     isSelected && tw`border border-blue-500`,
   ]
 );
 
-
 const RenderedComponentInteractionWrapper: FC<{
   component: ComponentInstance;
 }> = ({ children, component }) => {
   const zIndex = useContext(zContext);
-  const { layout, selectedComponent, selectComponent } = useLayoutEditor();
+  const {
+    layout,
+    selectedComponent,
+    selectComponent,
+    addComponent,
+  } = useLayoutEditor();
+
+  const addChild = () => {
+    addComponent({
+      parentId: component.id,
+      component: {
+        id: uuid(),
+        componentType: "text",
+        children: [],
+        config: [],
+        name: "",
+      },
+    });
+  };
+
   return (
     <ZProvider>
       <div className="relative">
@@ -82,6 +103,16 @@ const RenderedComponentInteractionWrapper: FC<{
           }}
           style={{ zIndex }}
         >
+          {/* {component.id === selectedComponent && (
+            <>
+              <button className="block text-center text-white bg-blue-500 bg-opacity-50 rounded-full leading-none w-4 h-4 absolute left-1/2 -top-5">
+                +
+              </button>
+              <button className="block text-center text-white bg-blue-500 bg-opacity-50 rounded-full leading-none w-4 h-4 absolute left-1/2 -bottom-5">
+                +
+              </button>
+            </>
+          )} */}
           <RightClickMenu
             renderTrigger={(props) => (
               <div className="relative" {...props}>
@@ -91,8 +122,27 @@ const RenderedComponentInteractionWrapper: FC<{
               </div>
             )}
           >
-            <div className="bg-green-500 p-4 text-white">
-              {component.id} <input type="text" placeholder="text" />
+            <div className="bg-gray-600 text-white rounded-sm text-sm">
+              <ul>
+                <li>
+                  <button className="text-left block w-full px-2 border-b border-gray-700">
+                    Add before
+                  </button>
+                </li>
+                <li>
+                  <button className="text-left block w-full px-2 border-b border-gray-700">
+                    Add After
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="text-left block w-full px-2 border-b border-gray-700"
+                    onClick={addChild}
+                  >
+                    Add Child
+                  </button>
+                </li>
+              </ul>
             </div>
           </RightClickMenu>
         </RenderedComponentInteractionBlock>
@@ -145,26 +195,6 @@ export const ComponentRenderer: FC<{
       })}
     </>
   );
-};
-
-const getComponentById = (
-  components: ComponentInstance[],
-  id: string
-): ComponentInstance | false => {
-  for (const component of components) {
-    const isComponent = component.id === id;
-    if (isComponent) {
-      return component;
-    }
-
-    if (component.children) {
-      const foundComponent = getComponentById(component.children, id) || false;
-      if (foundComponent) {
-        return foundComponent;
-      }
-    }
-  }
-  return false;
 };
 
 export const LayoutEditorSidebar: FC = () => {

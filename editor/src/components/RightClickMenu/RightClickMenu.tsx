@@ -6,9 +6,11 @@ import {
   JSXElementConstructor,
   PropsWithChildren,
   useEffect,
+  useRef,
   useState,
 } from "react";
 import { ContextMenu, ContextMenuTrigger, hideMenu } from "react-contextmenu";
+import ReactDOM from "react-dom";
 import { v1 } from "uuid";
 
 type AnyComponentType = keyof JSX.IntrinsicElements | ComponentType<any>;
@@ -31,9 +33,19 @@ export const RightClickMenu: FC<RightClickMenuProps> = ({
   const [uuid, setuuid] = useState("");
   const [isShowing, setIsShowing] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
+  const contextMenuRootRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     setuuid(v1());
+
+    const foundRoot = document.getElementById("context-menu-root");
+    if (foundRoot) {
+      contextMenuRootRef.current = foundRoot;
+    } else {
+      contextMenuRootRef.current = document.createElement("div");
+      document.body.append(contextMenuRootRef.current);
+      contextMenuRootRef.current.id = "context-menu-root";
+    }
   }, [setuuid]);
   /**
    * TODO: component renderer currently has a working example.
@@ -61,14 +73,19 @@ export const RightClickMenu: FC<RightClickMenuProps> = ({
           })}
         </ContextMenuTrigger>
       )}
-      <ContextMenu
-        id={uuid}
-        style={{ zIndex: 1000 }}
-        onShow={() => setIsShowing(true)}
-        onHide={() => setIsShowing(false)}
-      >
-        {children}
-      </ContextMenu>
+      {contextMenuRootRef.current &&
+        ReactDOM.createPortal(
+          <ContextMenu
+            id={uuid}
+            className="absolute"
+            style={{ zIndex: 1000 }}
+            onShow={() => setIsShowing(true)}
+            onHide={() => setIsShowing(false)}
+          >
+            {children}
+          </ContextMenu>,
+          contextMenuRootRef.current
+        )}
     </As>
   );
 };

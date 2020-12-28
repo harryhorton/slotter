@@ -66,6 +66,26 @@ interface LayoutEditorContext extends LayoutState {
   }) => void;
 }
 
+export const getComponentById = (
+  components: ComponentInstance[],
+  id: string
+): ComponentInstance | false => {
+  for (const component of components) {
+    const isComponent = component.id === id;
+    if (isComponent) {
+      return component;
+    }
+
+    if (component.children) {
+      const foundComponent = getComponentById(component.children, id) || false;
+      if (foundComponent) {
+        return foundComponent;
+      }
+    }
+  }
+  return false;
+};
+
 const layoutEditorContext = createContext<LayoutEditorContext>({
   layout: sampleLayout,
   selectedComponent: null,
@@ -107,8 +127,25 @@ export const LayoutEditorProvider: FC<{ initialLayout: LayoutInstance }> = ({
         case LayoutActionType.DESELECT_ALL_COMPONENTS:
           return { ...state, selectedComponent: null };
 
-        // case LayoutActionType.ADD_COMPONENT:
-        //   return { ...state, selectedComponent: action.payload };
+        case LayoutActionType.ADD_COMPONENT:
+          const parent = getComponentById(
+            state.layout.components,
+            action.payload.parentId
+          );
+
+          if (!parent) throw new Error("Unable to find component");
+
+          const layoutWithNewComponent = {
+            ...state.layout,
+            components: replaceComponent(state.layout.components, {
+              ...parent,
+              children: parent.children?.concat(action.payload.component) ?? [
+                action.payload.component,
+              ],
+            }),
+          };
+
+          return { ...state, layout: layoutWithNewComponent };
 
         case LayoutActionType.UPDATE_COMPONENT:
           const layout = {
