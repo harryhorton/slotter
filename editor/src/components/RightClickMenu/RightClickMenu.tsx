@@ -1,14 +1,4 @@
-import {
-  ComponentProps,
-  ComponentType,
-  ElementType,
-  FC,
-  JSXElementConstructor,
-  PropsWithChildren,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { ComponentType, FC, useEffect, useRef, useState } from "react";
 import { ContextMenu, ContextMenuTrigger, hideMenu } from "react-contextmenu";
 import ReactDOM from "react-dom";
 import { v1 } from "uuid";
@@ -21,13 +11,16 @@ interface RightClickMenuProps {
     onMouseOut: () => void;
     onClick: () => void;
   }) => any;
+  onShow?: () => void;
   is?: AnyComponentType;
+  className?: string;
 }
 
 export const RightClickMenu: FC<RightClickMenuProps> = ({
   children,
   renderTrigger,
   is = "span",
+  onShow,
   ...props
 }) => {
   const [uuid, setuuid] = useState("");
@@ -57,7 +50,7 @@ export const RightClickMenu: FC<RightClickMenuProps> = ({
   const As = is;
 
   return (
-    <As {...props}>
+    <>
       {isShowing || !isHovering ? (
         renderTrigger({
           onClick: () => hideMenu(),
@@ -65,7 +58,7 @@ export const RightClickMenu: FC<RightClickMenuProps> = ({
           onMouseOut: () => setIsHovering(false),
         })
       ) : (
-        <ContextMenuTrigger id={uuid}>
+        <ContextMenuTrigger id={uuid} {...props}>
           {renderTrigger({
             onClick: () => hideMenu(),
             onMouseOver: () => setIsHovering(true),
@@ -79,13 +72,16 @@ export const RightClickMenu: FC<RightClickMenuProps> = ({
             id={uuid}
             className="absolute"
             style={{ zIndex: 1000 }}
-            onShow={() => setIsShowing(true)}
+            onShow={() => {
+              onShow && onShow();
+              setIsShowing(true);
+            }}
             onHide={() => setIsShowing(false)}
           >
             {children}
           </ContextMenu>,
           contextMenuRootRef.current
         )}
-    </As>
+    </>
   );
 };

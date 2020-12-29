@@ -108,43 +108,6 @@ const replaceComponent = (
   });
 };
 
-// /**
-//  * A pure version of Array.prototype.splice
-//  * It will return a new array rather than mutate the array
-//  * See: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/splice
-//  * @param {Array} array The target array
-//  * @param {number} start Index at which to start changing the array
-//  * @param {number} deleteCount An integer indicating the number of old array elements to remove
-//  * @param {any} items The elements to add to the array, beginning at the start index
-//  * @returns {Array}
-//  */
-// const pureSplice = <T, S>(
-//   array: T[],
-//   start = 0,
-//   deleteCount = 0,
-//   ...items: S[]
-// ) => {
-//   const arrayLength = array.length;
-//   const _deleteCount = deleteCount < 0 ? 0 : deleteCount;
-//   let _start: number;
-//   if (start < 0) {
-//     if (Math.abs(start) > arrayLength) {
-//       _start = 0;
-//     } else {
-//       _start = arrayLength + start;
-//     }
-//   } else if (start > arrayLength) {
-//     _start = arrayLength;
-//   } else {
-//     _start = start;
-//   }
-//   return [
-//     ...array.slice(0, _start),
-//     ...items,
-//     ...array.slice(_start + _deleteCount, arrayLength),
-//   ];
-// };
-
 const addComponent = ({
   component,
   index,
@@ -165,9 +128,8 @@ const addComponent = ({
 
   const parent = getComponentById(component.parentId, components);
   if (!parent) throw new Error("Unable to find component");
-
   parent.children.splice(
-    index ?? parent.children.length === 0 ? 0 : parent.children.length - 1,
+    index ?? parent.children.length === 0 ? 0 : parent.children.length,
     0,
     newComponent.id
   );
@@ -180,6 +142,28 @@ const addComponent = ({
   console.log(componentsWithUpdatedParent);
 
   return componentsWithUpdatedParent.concat(newComponent);
+};
+
+const deleteComponent = (id: string, components: ComponentInstance[]) => {
+  return components
+    .filter((currentComponent) => {
+      // Delete component
+      // delete component's children
+      return currentComponent?.parentId !== id && currentComponent?.id !== id;
+    })
+    .map((currentComponent) => {
+      // Delete as child reference
+      if (currentComponent.children.includes(id)) {
+        return {
+          ...currentComponent,
+          children: currentComponent.children.filter(
+            (childId) => childId !== id
+          ),
+        };
+      }
+
+      return currentComponent;
+    });
 };
 
 const getComponentsById = (ids: string[], components: ComponentInstance[]) =>
@@ -215,8 +199,14 @@ const LayoutReducer = (state: LayoutState, action: LayoutAction) => {
       };
       return { ...state, layout };
 
-    // case LayoutActionType.DELETE_COMPONENT:
-    //   return { ...state, selectedComponent: action.payload };
+    case LayoutActionType.DELETE_COMPONENT:
+      return {
+        ...state,
+        layout: {
+          ...state.layout,
+          components: deleteComponent(action.payload, state.layout.components),
+        },
+      };
 
     // case LayoutActionType.MOVE_COMPONENT:
     //   return { ...state, selectedComponent: action.payload };

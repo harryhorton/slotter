@@ -1,34 +1,52 @@
 import { ComponentInstance } from "@slotter/types";
-import { FC, useContext, MouseEvent } from "react";
+import { FC, useContext, MouseEvent, useRef, useState, useEffect } from "react";
 import { hideMenu } from "react-contextmenu/modules/actions";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import tw from "twin.macro";
 import { useAppContext } from "../../providers/app";
 import { zIndexContext, ZIndexProvider } from "../../providers/ZIndexProvider";
 import { RightClickMenu } from "../RightClickMenu";
 import { TextComponent } from "../TextComponent";
 import { useLayoutEditor } from "./LayoutEditorProvider";
+import hash from "object-hash";
 
 const RenderedComponentInteractionBlock = styled.div<{ isSelected: boolean }>(
   ({ isSelected }) => [
-    tw`absolute w-full h-full left-0 top-0 cursor-pointer`,
+    tw`flex absolute justify-items-stretch w-full h-full left-0 top-0 cursor-pointer`,
     tw`bg-transparent text-transparent hover:text-white hover:border hover:border-blue-500 hover:bg-blue-500 hover:bg-opacity-50`,
     isSelected && tw`border border-blue-500`,
+    // This is required to get the menu trigger to fill its container
+    css`
+      & > * {
+        flex: 1;
+      }
+    `,
   ]
 );
 const RenderedComponentInteractionWrapper: FC<{
   component: ComponentInstance;
 }> = ({ children, component }) => {
   const zIndex = useContext(zIndexContext);
+  const [display, setDisplay] = useState("block");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const computedStyles = getComputedStyle(ref.current?.children[0]!);
+    if (ref.current?.children[0]) {
+      setDisplay(
+        computedStyles.display.includes("inline") ? "inline" : "block"
+      );
+    }
+  }, []);
   const {
     selectedComponent,
     selectComponent,
     addComponent,
+    deleteComponent,
+    deselectAllComponents,
   } = useLayoutEditor();
 
-  const addChild = (e: MouseEvent) => {
-    e.stopPropagation();
-    console.log('click event')
+  const handleAddChild = () => {
     addComponent({
       component: {
         parentId: component.id,
@@ -44,9 +62,15 @@ const RenderedComponentInteractionWrapper: FC<{
     hideMenu();
   };
 
+  const handleDeleteComponent = () => {
+    deselectAllComponents();
+    deleteComponent(component.id);
+    hideMenu();
+  };
+
   return (
     <ZIndexProvider>
-      <div className="relative">
+      <div className="relative" ref={ref} style={{ display }}>
         {children}
         <RenderedComponentInteractionBlock
           isSelected={component.id === selectedComponent}
@@ -55,20 +79,17 @@ const RenderedComponentInteractionWrapper: FC<{
             selectComponent(component.id);
           }}
           style={{ zIndex }}
+          data-testid="rendered-component-interaction-block"
+          data-componentid={component.id}
         >
           <RightClickMenu
-            renderTrigger={(props) => (
-              <div className="relative" {...props}>
-                <span className="text-center block">
-                  {component.name || component.componentType}
-                </span>
-              </div>
-            )}
+            renderTrigger={(props) => <div {...props}></div>}
+            onShow={() => selectComponent(component.id)}
           >
             <div className="bg-gray-600 text-white rounded-sm text-sm">
               <ul>
                 <li>
-                  <button className="text-left block w-full px-2 border-b border-gray-700">
+                  <button className="text-left block w-full px-2 border-b border-gray-700 rounded-t-sm">
                     Add before
                   </button>
                 </li>
@@ -80,9 +101,17 @@ const RenderedComponentInteractionWrapper: FC<{
                 <li>
                   <button
                     className="text-left block w-full px-2 border-b border-gray-700"
-                    onClick={addChild}
+                    onClick={handleAddChild}
                   >
                     Add Child
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="text-left block w-full px-2 border-b border-red-800 bg-red-700 rounded-b-sm"
+                    onClick={handleDeleteComponent}
+                  >
+                    Delete
                   </button>
                 </li>
               </ul>
@@ -139,7 +168,10 @@ export const ComponentRenderer: FC<{
           );
 
         return (
-          <RenderedComponentInteractionWrapper component={comp} key={comp.id}>
+          <RenderedComponentInteractionWrapper
+            component={comp}
+            key={hash(comp)}
+          >
             <RegisteredComponent component={comp}>
               <ComponentRenderer
                 components={getComponentsById(comp.children)}
