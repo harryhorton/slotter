@@ -20,7 +20,7 @@ export const TextComponentType: ComponentType = {
       id: "value",
       fieldType: "text",
       label: "Value",
-      defaultValue: "",
+      defaultValue: "text",
       placeholder: "Enter some text",
     },
   ],
