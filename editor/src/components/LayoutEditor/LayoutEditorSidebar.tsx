@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { useAppContext } from "../../providers/app";
 import { FieldEditor } from "../FieldEditor";
-import { getComponentById, useLayoutEditor } from "./LayoutEditorProvider";
+import { useLayoutEditor } from "./LayoutEditorProvider";
 
 export const LayoutEditorSidebar: FC = () => {
   const {
@@ -9,11 +9,13 @@ export const LayoutEditorSidebar: FC = () => {
       adminConfig: { componentTypes },
     },
   } = useAppContext();
-  const { layout, selectedComponent, updateComponent } = useLayoutEditor();
+  const {
+    selectedComponent,
+    updateComponent,
+    getComponentById,
+  } = useLayoutEditor();
   const foundSelectedcomponent =
-    (selectedComponent &&
-      getComponentById(layout.components, selectedComponent)) ||
-    null;
+    (selectedComponent && getComponentById(selectedComponent)) || null;
 
   const foundComponentType = componentTypes.find(
     (type) => type.id === foundSelectedcomponent?.componentType

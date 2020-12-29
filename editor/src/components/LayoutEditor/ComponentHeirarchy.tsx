@@ -11,13 +11,21 @@ export const ComponentHeirarchyItem = styled.li<{ isSelected: boolean }>(
   ]
 );
 export const ComponentHeirarchy: FC<{
-  components?: ComponentInstance[];
-}> = ({ components }) => {
-  const { layout, selectedComponent, selectComponent } = useLayoutEditor();
+  components: ComponentInstance[];
+  isRoot?: boolean;
+}> = ({ components, isRoot = false }) => {
+  const {
+    selectedComponent,
+    selectComponent,
+    getComponentsById,
+  } = useLayoutEditor();
 
   return (
     <ul>
-      {(components ?? layout.components).map((comp) => {
+      {(isRoot
+        ? components.filter(({ parentId }) => parentId === "root")
+        : components
+      ).map((comp) => {
         return (
           <ComponentHeirarchyItem
             isSelected={comp.id === selectedComponent}
@@ -27,10 +35,12 @@ export const ComponentHeirarchy: FC<{
             }}
           >
             {comp.name || `[${comp.componentType}]`}
-            {comp.children && comp.children.length ? (
+            {comp.children.length ? (
               <>
                 <br />
-                <ComponentHeirarchy components={comp.children} />
+                <ComponentHeirarchy
+                  components={getComponentsById(comp.children)}
+                />
               </>
             ) : null}
           </ComponentHeirarchyItem>

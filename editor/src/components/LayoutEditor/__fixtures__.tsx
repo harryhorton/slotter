@@ -20,19 +20,22 @@ export const sampleLayout: LayoutInstance = {
   components: [
     {
       componentType: "text",
+      parentId: "root",
       id: "1",
       config: { value: "parent" },
-      children: [
-        {
-          componentType: "text",
-          id: "3",
-          config: { value: "child" },
-          children: [],
-        },
-      ],
+      children: ["3"],
     },
     {
       componentType: "text",
+      id: "3",
+      config: { value: "child" },
+      parentId: "1",
+      children: [],
+    },
+    {
+      componentType: "text",
+      parentId: "root",
+      children: [],
       id: "2",
       config: { value: "sibling" },
     },

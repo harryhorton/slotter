@@ -29,10 +29,10 @@ export const LayoutEditorView: FC = () => {
   return (
     <div className="flex border border-gray-100 h-screen">
       <div className="bg-gray-100 px-1 py-1" onClick={handleEmptySpaceClick}>
-        <ComponentHeirarchy components={components} />
+        <ComponentHeirarchy components={components} isRoot />
       </div>
       <div className="flex-1" onClick={handleEmptySpaceClick}>
-        <ComponentRenderer components={components} />
+        <ComponentRenderer components={components} isRoot />
       </div>
       <LayoutEditorSidebar />
     </div>

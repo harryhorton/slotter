@@ -1,13 +1,13 @@
 import { ComponentInstance } from "@slotter/types";
-import { FC, useContext } from "react";
+import { FC, useContext, MouseEvent } from "react";
+import { hideMenu } from "react-contextmenu/modules/actions";
 import styled from "styled-components";
 import tw from "twin.macro";
-import { v1 as uuid } from "uuid";
+import { useAppContext } from "../../providers/app";
 import { zIndexContext, ZIndexProvider } from "../../providers/ZIndexProvider";
 import { RightClickMenu } from "../RightClickMenu";
 import { TextComponent } from "../TextComponent";
 import { useLayoutEditor } from "./LayoutEditorProvider";
-import { componentTypes } from "./__fixtures__";
 
 const RenderedComponentInteractionBlock = styled.div<{ isSelected: boolean }>(
   ({ isSelected }) => [
@@ -26,17 +26,22 @@ const RenderedComponentInteractionWrapper: FC<{
     addComponent,
   } = useLayoutEditor();
 
-  const addChild = () => {
+  const addChild = (e: MouseEvent) => {
+    e.stopPropagation();
+    console.log('click event')
     addComponent({
-      parentId: component.id,
       component: {
-        id: uuid(),
+        parentId: component.id,
         componentType: "text",
         children: [],
-        config: [],
+        config: {
+          value: "need to apply defaults",
+          className: "",
+        },
         name: "",
       },
     });
+    hideMenu();
   };
 
   return (
@@ -97,10 +102,23 @@ const registeredComponents: Record<
 
 export const ComponentRenderer: FC<{
   components: ComponentInstance[];
-}> = ({ components }) => {
+  isRoot?: boolean;
+}> = ({ components, isRoot = false }) => {
+  const {
+    appState: {
+      adminConfig: { componentTypes },
+    },
+  } = useAppContext();
+  const { getComponentsById } = useLayoutEditor();
+
+  if (!components.length) return null;
+
   return (
     <>
-      {components.map((comp) => {
+      {(isRoot
+        ? components.filter(({ parentId }) => parentId === "root")
+        : components
+      ).map((comp) => {
         const componentType = componentTypes.find(
           (type) => type.id === comp.componentType
         );
@@ -121,11 +139,11 @@ export const ComponentRenderer: FC<{
           );
 
         return (
-          <RenderedComponentInteractionWrapper component={comp}>
+          <RenderedComponentInteractionWrapper component={comp} key={comp.id}>
             <RegisteredComponent component={comp}>
-              {comp.children && (
-                <ComponentRenderer components={comp.children} />
-              )}
+              <ComponentRenderer
+                components={getComponentsById(comp.children)}
+              />
             </RegisteredComponent>
           </RenderedComponentInteractionWrapper>
         );

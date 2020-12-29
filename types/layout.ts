@@ -1,5 +1,7 @@
 import { FieldInstance } from "./field";
 
+export type ComponentInstanceId = string;
+
 export interface ComponentType {
   id: string;
   label?: string;
@@ -12,9 +14,12 @@ export interface ComponentInstance {
   id: string;
   name?: string;
   componentType: ComponentType["id"];
-  config?: ComponentConfig;
-  children?: ComponentInstance[];
+  config: ComponentConfig;
+  parentId: "root" | string;
+  children: ComponentInstanceId[];
 }
+
+export type ComponentInstanceWithoutId = Omit<ComponentInstance, "id">;
 
 export interface LayoutInstance {
   id: string;
