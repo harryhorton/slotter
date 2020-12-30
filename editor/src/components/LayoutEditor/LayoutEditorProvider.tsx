@@ -128,8 +128,13 @@ const addComponent = ({
 
   const parent = getComponentById(component.parentId, components);
   if (!parent) throw new Error("Unable to find component");
+  console.log(
+    "result",
+    index,
+    index ?? (parent.children.length === 0 ? 0 : parent.children.length)
+  );
   parent.children.splice(
-    index ?? parent.children.length === 0 ? 0 : parent.children.length,
+    index ?? (parent.children.length === 0 ? 0 : parent.children.length),
     0,
     newComponent.id
   );
@@ -138,8 +143,6 @@ const addComponent = ({
     { ...parent, children: [...parent.children] },
     components
   );
-
-  console.log(componentsWithUpdatedParent);
 
   return componentsWithUpdatedParent.concat(newComponent);
 };

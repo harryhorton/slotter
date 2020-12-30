@@ -1,5 +1,6 @@
 import { ComponentInstance } from "@slotter/types";
-import { FC, useContext, MouseEvent, useRef, useState, useEffect } from "react";
+import hash from "object-hash";
+import { FC, useContext, useEffect, useRef, useState } from "react";
 import { hideMenu } from "react-contextmenu/modules/actions";
 import styled, { css } from "styled-components";
 import tw from "twin.macro";
@@ -8,7 +9,7 @@ import { zIndexContext, ZIndexProvider } from "../../providers/ZIndexProvider";
 import { RightClickMenu } from "../RightClickMenu";
 import { TextComponent } from "../TextComponent";
 import { useLayoutEditor } from "./LayoutEditorProvider";
-import hash from "object-hash";
+import {} from "react-dnd";
 
 const RenderedComponentInteractionBlock = styled.div<{ isSelected: boolean }>(
   ({ isSelected }) => [
@@ -44,12 +45,54 @@ const RenderedComponentInteractionWrapper: FC<{
     addComponent,
     deleteComponent,
     deselectAllComponents,
+    getComponentById,
   } = useLayoutEditor();
 
   const handleAddChild = () => {
     addComponent({
       component: {
         parentId: component.id,
+        componentType: "text",
+        children: [],
+        config: {
+          value: "need to apply defaults",
+          className: "",
+        },
+        name: "",
+      },
+    });
+    hideMenu();
+  };
+
+  const handleAddChildBefore = () => {
+    const parent = getComponentById(component.parentId);
+    const index = parent!.children.indexOf(component.id);
+    console.log(index);
+
+    addComponent({
+      index,
+      component: {
+        parentId: component.parentId,
+        componentType: "text",
+        children: [],
+        config: {
+          value: "need to apply defaults",
+          className: "",
+        },
+        name: "",
+      },
+    });
+    hideMenu();
+  };
+
+  const handleAddChildAfter = () => {
+    const parent = getComponentById(component.parentId);
+    let currentIndex = parent!.children.indexOf(component.id);
+
+    addComponent({
+      index: currentIndex + 1,
+      component: {
+        parentId: component.parentId,
         componentType: "text",
         children: [],
         config: {
@@ -89,13 +132,11 @@ const RenderedComponentInteractionWrapper: FC<{
             <div className="bg-gray-600 text-white rounded-sm text-sm">
               <ul>
                 <li>
-                  <button className="text-left block w-full px-2 border-b border-gray-700 rounded-t-sm">
-                    Add before
-                  </button>
-                </li>
-                <li>
-                  <button className="text-left block w-full px-2 border-b border-gray-700">
-                    Add After
+                  <button
+                    className="text-left block w-full px-2 border-b border-gray-700 rounded-t-sm"
+                    onClick={handleAddChildBefore}
+                  >
+                    Add {display.includes("inline") ? "Before" : "Above"}
                   </button>
                 </li>
                 <li>
@@ -104,6 +145,14 @@ const RenderedComponentInteractionWrapper: FC<{
                     onClick={handleAddChild}
                   >
                     Add Child
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className="text-left block w-full px-2 border-b border-gray-700"
+                    onClick={handleAddChildAfter}
+                  >
+                    Add {display.includes("inline") ? "After" : "Below"}
                   </button>
                 </li>
                 <li>
