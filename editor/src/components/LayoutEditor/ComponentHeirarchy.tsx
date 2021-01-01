@@ -57,7 +57,7 @@ export const ComponentHeirarchyItem: FC<{
     heirarchyContext
   );
 
-  const [{ opacity }, drag] = useDrag({
+  const [, drag] = useDrag({
     item: { type: "component", component },
     begin(monitor) {
       setDragging(component);
