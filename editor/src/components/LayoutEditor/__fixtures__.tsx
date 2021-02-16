@@ -19,16 +19,23 @@ export const sampleLayout: LayoutInstance = {
   id: "sample-layout",
   components: [
     {
+      id: "root",
+      parentId: null,
+      children: ["1", "2"],
+      componentType: "root",
+      config: {},
+    },
+    {
       componentType: "text",
       parentId: "root",
       id: "1",
-      config: { value: "parent" },
+      config: { value: "parent", className: "block bg-gray-300" },
       children: ["3"],
     },
     {
       componentType: "text",
       id: "3",
-      config: { value: "child" },
+      config: { value: "inline-child", className: "bg-gray-400" },
       parentId: "1",
       children: [],
     },

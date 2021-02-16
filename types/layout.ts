@@ -1,4 +1,5 @@
 import { FieldInstance } from "./field";
+import { TreeArrayItem } from "./tree";
 
 export type ComponentInstanceId = string;
 
@@ -10,12 +11,12 @@ export interface ComponentType {
 
 export type ComponentConfig = Record<string, any>;
 
-export interface ComponentInstance {
+export interface ComponentInstance extends TreeArrayItem {
   id: string;
   name?: string;
   componentType: ComponentType["id"];
   config: ComponentConfig;
-  parentId: "root" | string;
+  parentId: string | null;
   children: ComponentInstanceId[];
 }
 

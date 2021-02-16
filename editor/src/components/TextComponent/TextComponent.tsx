@@ -1,5 +1,5 @@
 import { ComponentInstance, ComponentType } from "@slotter/types";
-import { FC } from "react";
+import { FC, forwardRef } from "react";
 
 interface TextComponentProps {
   component: ComponentInstance;
@@ -26,13 +26,12 @@ export const TextComponentType: ComponentType = {
   ],
 };
 
-export const TextComponent: FC<TextComponentProps> = ({
-  component,
-  children,
-}) => {
-  return (
-    <span className={component.config?.className || ""}>
-      {component.config?.value} {children}
-    </span>
-  );
-};
+export const TextComponent = forwardRef<HTMLSpanElement, TextComponentProps>(
+  ({ component, children }, ref) => {
+    return (
+      <span ref={ref} className={component.config?.className || ""}>
+        {component.config?.value} {children}
+      </span>
+    );
+  }
+);

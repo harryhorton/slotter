@@ -1,234 +1,169 @@
 import { ComponentInstance } from "@slotter/types";
 import hash from "object-hash";
-import { FC, useContext, useEffect, useRef, useState } from "react";
-import { hideMenu } from "react-contextmenu/modules/actions";
+import { FC, RefObject, useContext, useEffect, useRef, useState } from "react";
+import {} from "react-dnd";
 import styled, { css } from "styled-components";
 import tw from "twin.macro";
 import { useAppContext } from "../../providers/app";
 import { zIndexContext, ZIndexProvider } from "../../providers/ZIndexProvider";
-import { RightClickMenu } from "../RightClickMenu";
+import { findTreeArrayItemById } from "../../utils/layoutUtils";
+import {
+  draggableContext,
+  DraggableDropzone,
+  DropPosition,
+} from "../Draggable";
 import { TextComponent } from "../TextComponent";
+import { ComponentRightClickMenu } from "./ComponentRightClickMenu";
 import { useLayoutEditor } from "./LayoutEditorProvider";
-import {} from "react-dnd";
 
-const RenderedComponentInteractionBlock = styled.div<{ isSelected: boolean }>(
-  ({ isSelected }) => [
-    tw`flex absolute justify-items-stretch w-full h-full left-0 top-0 cursor-pointer`,
+const RenderedComponentInteractionBlock = styled.div<{
+  isSelected: boolean;
+  isDragging: boolean;
+  isDraggingThis: boolean;
+  hoverPosition: DropPosition | null;
+}>(({ isSelected, isDragging, hoverPosition, isDraggingThis }) => [
+  tw`flex fixed justify-items-stretch cursor-pointer`,
+  tw`bg-transparent text-transparent`,
+  // isDragging && tw`bg-transparent text-transparent `,
+  hoverPosition === DropPosition.top && tw`border-t-4 border-blue-500`,
+  hoverPosition === DropPosition.bottom && tw`border-b-4 border-blue-500`,
+  hoverPosition === DropPosition.right && tw`border-r-4 border-blue-500`,
+  hoverPosition === DropPosition.left && tw`border-l-4 border-blue-500`,
+  hoverPosition === DropPosition.inside && tw`border-4 border-blue-500`,
+  !isDragging &&
     tw`bg-transparent text-transparent hover:text-white hover:border hover:border-blue-500 hover:bg-blue-500 hover:bg-opacity-50`,
-    isSelected && tw`border border-blue-500`,
-    // This is required to get the menu trigger to fill its container
-    css`
-      & > * {
-        flex: 1;
-      }
-    `,
-  ]
-);
+  isSelected && tw`border border-blue-500`,
+  isDraggingThis && tw`border border-blue-500`,
+  // This is required to get the menu trigger to fill its container
+  css`
+    & > * {
+      flex: 1;
+    }
+  `,
+]);
+
 const RenderedComponentInteractionWrapper: FC<{
   component: ComponentInstance;
-}> = ({ children, component }) => {
+  componentRef: HTMLElement | null;
+}> = ({ children, component, componentRef }) => {
   const zIndex = useContext(zIndexContext);
-  const [display, setDisplay] = useState("block");
-  const ref = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const computedStyles = getComputedStyle(ref.current?.children[0]!);
-    if (ref.current?.children[0]) {
-      setDisplay(
-        computedStyles.display.includes("inline") ? "inline" : "block"
-      );
-    }
-  }, []);
-  const {
-    selectedComponent,
-    selectComponent,
-    addComponent,
-    deleteComponent,
-    deselectAllComponents,
-    getComponentById,
-  } = useLayoutEditor();
+  const { selectedComponent, selectComponent, layout } = useLayoutEditor();
+  const { state: dragState } = useContext(draggableContext);
 
-  const handleAddChild = () => {
-    addComponent({
-      component: {
-        parentId: component.id,
-        componentType: "text",
-        children: [],
-        config: {
-          value: "need to apply defaults",
-          className: "",
-        },
-        name: "",
-      },
-    });
-    hideMenu();
-  };
+  const display = componentRef
+    ? getComputedStyle(componentRef!).display.includes("inline")
+      ? "inline"
+      : "block"
+    : "block";
+  useEffect(() => {}, []);
 
-  const handleAddChildBefore = () => {
-    const parent = getComponentById(component.parentId);
-    const index = parent!.children.indexOf(component.id);
-    console.log(index);
-
-    addComponent({
-      index,
-      component: {
-        parentId: component.parentId,
-        componentType: "text",
-        children: [],
-        config: {
-          value: "need to apply defaults",
-          className: "",
-        },
-        name: "",
-      },
-    });
-    hideMenu();
-  };
-
-  const handleAddChildAfter = () => {
-    const parent = getComponentById(component.parentId);
-    let currentIndex = parent!.children.indexOf(component.id);
-
-    addComponent({
-      index: currentIndex + 1,
-      component: {
-        parentId: component.parentId,
-        componentType: "text",
-        children: [],
-        config: {
-          value: "need to apply defaults",
-          className: "",
-        },
-        name: "",
-      },
-    });
-    hideMenu();
-  };
-
-  const handleDeleteComponent = () => {
-    deselectAllComponents();
-    deleteComponent(component.id);
-    hideMenu();
-  };
+  const left = componentRef?.getBoundingClientRect().left || 10;
+  const top = componentRef?.getBoundingClientRect().top || 10;
+  const width = componentRef?.getBoundingClientRect().width || 10;
+  const height = componentRef?.getBoundingClientRect().height || 10;
 
   return (
     <ZIndexProvider>
-      <div className="relative" ref={ref} style={{ display }}>
-        {children}
-        <RenderedComponentInteractionBlock
-          isSelected={component.id === selectedComponent}
-          onClick={(e) => {
-            e.stopPropagation();
-            selectComponent(component.id);
-          }}
-          style={{ zIndex }}
-          data-testid="rendered-component-interaction-block"
-          data-componentid={component.id}
-        >
-          <RightClickMenu
-            renderTrigger={(props) => <div {...props}></div>}
-            onShow={() => selectComponent(component.id)}
+      {children}
+      <DraggableDropzone
+        item={component}
+        treeArray={layout.components}
+        enabledDropPositions={
+          display === "inline"
+            ? [DropPosition.left, DropPosition.right, DropPosition.inside]
+            : [DropPosition.top, DropPosition.bottom, DropPosition.inside]
+        }
+      >
+        {({ ref, dropPosition, onDragLeave, onDragOver, isDraggingThis }) => (
+          <RenderedComponentInteractionBlock
+            ref={ref}
+            isDragging={dragState.state !== "idle"}
+            isDraggingThis={dragState.dragItem?.id === component.id}
+            onDragLeave={onDragLeave}
+            onDragOver={onDragOver}
+            hoverPosition={dropPosition}
+            isSelected={component.id === selectedComponent}
+            onClick={(e) => {
+              e.stopPropagation();
+              selectComponent(component.id);
+            }}
+            style={{ zIndex, left, top, width, height }}
+            data-testid="rendered-component-interaction-block"
+            data-componentid={component.id}
           >
-            <div className="bg-gray-600 text-white rounded-sm text-sm">
-              <ul>
-                <li>
-                  <button
-                    className="text-left block w-full px-2 border-b border-gray-700 rounded-t-sm"
-                    onClick={handleAddChildBefore}
-                  >
-                    Add {display.includes("inline") ? "Before" : "Above"}
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="text-left block w-full px-2 border-b border-gray-700"
-                    onClick={handleAddChild}
-                  >
-                    Add Child
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="text-left block w-full px-2 border-b border-gray-700"
-                    onClick={handleAddChildAfter}
-                  >
-                    Add {display.includes("inline") ? "After" : "Below"}
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className="text-left block w-full px-2 border-b border-red-800 bg-red-700 rounded-b-sm"
-                    onClick={handleDeleteComponent}
-                  >
-                    Delete
-                  </button>
-                </li>
-              </ul>
-            </div>
-          </RightClickMenu>
-        </RenderedComponentInteractionBlock>
-      </div>
+            {dragState.state === "idle" && (
+              <ComponentRightClickMenu component={component} />
+            )}
+          </RenderedComponentInteractionBlock>
+        )}
+      </DraggableDropzone>
     </ZIndexProvider>
   );
 };
-const registeredComponents: Record<
-  string,
-  FC<{ component: ComponentInstance }>
-> = {
+const registeredComponents: Record<string, any> = {
   text: TextComponent,
 };
 
 export const ComponentRenderer: FC<{
   components: ComponentInstance[];
-  isRoot?: boolean;
-}> = ({ components, isRoot = false }) => {
+  rootId?: string;
+}> = ({ components, rootId = "root" }) => {
   const {
     appState: {
       adminConfig: { componentTypes },
     },
   } = useAppContext();
-  const { getComponentsById } = useLayoutEditor();
+  const component = findTreeArrayItemById(components, rootId);
+  const [
+    registeredComponentRef,
+    setRegisteredComponentRef,
+  ] = useState<HTMLElement | null>(null);
+  if (!component) return null;
 
-  if (!components.length) return null;
+  if (component.id === "root") {
+    return (
+      <>
+        {component.children.map((childId) => (
+          <ComponentRenderer components={components} rootId={childId} />
+        ))}
+      </>
+    );
+  }
+
+  const componentType = componentTypes.find(
+    (type) => type.id === component.componentType
+  );
+
+  const RegisteredComponent = registeredComponents[component.componentType];
+
+  if (!componentType)
+    return (
+      <div className="text-red-500">
+        Component type {component.componentType} not found.
+      </div>
+    );
+  if (!RegisteredComponent)
+    return (
+      <div className="text-red-500">
+        Component {component.componentType} is not a registered component.
+      </div>
+    );
 
   return (
-    <>
-      {(isRoot
-        ? components.filter(({ parentId }) => parentId === "root")
-        : components
-      ).map((comp) => {
-        const componentType = componentTypes.find(
-          (type) => type.id === comp.componentType
-        );
-        const RegisteredComponent = registeredComponents[comp.componentType];
-
-        if (!componentType)
-          return (
-            <div className="text-red-500">
-              Component type {comp.componentType} not found.
-            </div>
-          );
-
-        if (!RegisteredComponent)
-          return (
-            <div className="text-red-500">
-              Component {comp.componentType} is not a registered component.
-            </div>
-          );
-
-        return (
-          <RenderedComponentInteractionWrapper
-            component={comp}
-            key={hash(comp)}
-          >
-            <RegisteredComponent component={comp}>
-              <ComponentRenderer
-                components={getComponentsById(comp.children)}
-              />
-            </RegisteredComponent>
-          </RenderedComponentInteractionWrapper>
-        );
-      })}
-    </>
+    <RenderedComponentInteractionWrapper
+      component={component}
+      key={hash(component)}
+      componentRef={registeredComponentRef}
+    >
+      <RegisteredComponent
+        ref={(newRef: any) => setRegisteredComponentRef(newRef)}
+        component={component}
+      >
+        {component.children.map((childId) => (
+          <ComponentRenderer components={components} rootId={childId} />
+        ))}
+      </RegisteredComponent>
+    </RenderedComponentInteractionWrapper>
   );
 };

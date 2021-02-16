@@ -1,156 +1,101 @@
 import { ComponentInstance } from "@slotter/types";
-import { createContext, FC, useContext, useState } from "react";
-import styled, { css } from "styled-components";
+import React, { FC } from "react";
+import styled from "styled-components";
 import tw from "twin.macro";
+import { findTreeArrayItemById } from "../../utils/layoutUtils";
+import {
+  DraggableDropzone,
+  DraggableItem,
+  DropPosition,
+  Dropzone,
+} from "../Draggable";
 import { useLayoutEditor } from "./LayoutEditorProvider";
-import { useDrag, useDrop } from "react-dnd";
 
-interface HeirarchyState {
-  isDragging: boolean;
-  draggingComponent: ComponentInstance | null;
-}
-
-interface HeirarchyContext extends HeirarchyState {
-  setDragging: (component: ComponentInstance | null) => void;
-}
-
-const heirarchyContext = createContext<HeirarchyContext>({
-  isDragging: false,
-  draggingComponent: null,
-  setDragging() {},
-});
-
-export const HeirarchyProvider: FC = ({ ...props }) => {
-  const [state, setstate] = useState<HeirarchyState>({
-    isDragging: false,
-    draggingComponent: null,
-  });
-
-  const setDragging = (draggingComponent: ComponentInstance | null) =>
-    setstate({
-      ...state,
-      isDragging: Boolean(draggingComponent),
-      draggingComponent,
-    });
-  return (
-    <heirarchyContext.Provider value={{ ...state, setDragging }} {...props} />
-  );
-};
-
-export const StyledComponentHeirarchyItem = styled.li<{
+export const ComponentHeirarchyItem = styled.li<{
   isSelected: boolean;
-  isThisDragging: boolean;
-  isDragging: boolean;
-}>(({ isSelected, isDragging, isThisDragging }) => [
+  hoverPosition: DropPosition | null;
+}>(({ isSelected, hoverPosition }) => [
   tw`ml-1 cursor-pointer text-gray-900 leading-none`,
   isSelected && tw`text-blue-400`,
-  isThisDragging && tw`opacity-25`,
-  !isDragging && tw`mb-1`,
+  hoverPosition === DropPosition.top && tw`border-t border-blue-500`,
+  hoverPosition === DropPosition.bottom && tw`border-b border-blue-500`,
+  hoverPosition === DropPosition.inside && tw`border border-blue-500`,
 ]);
 
-export const ComponentHeirarchyItem: FC<{
-  isSelected: boolean;
-  component: ComponentInstance;
-  onClick: (e: any) => void;
-}> = ({ children, isSelected, component }) => {
-  const { isDragging, setDragging, draggingComponent } = useContext(
-    heirarchyContext
-  );
-
-  const [, drag] = useDrag({
-    item: { type: "component", component },
-    begin(monitor) {
-      setDragging(component);
-    },
-    end(item, monitor) {
-      alert(JSON.stringify(monitor.getDropResult()));
-      setDragging(null);
-    },
-  });
-
-  return (
-    <StyledComponentHeirarchyItem
-      isSelected={isSelected}
-      isThisDragging={draggingComponent?.id === component.id}
-      isDragging={isDragging}
-      ref={drag}
-    >
-      {children}
-    </StyledComponentHeirarchyItem>
-  );
-};
-
-const StyledDropZone = styled.li<{ isOver?: boolean; isFirst?: boolean }>(
-  ({ isOver, isFirst }) => [
-    tw`bg-blue-500 h-1 w-full opacity-0 z-10`,
-    isOver && tw` opacity-100`,
-    !isFirst && tw`transform translate-y-1`,
-  ]
-);
-
-const DropZone: FC<{ isFirst?: boolean }> = ({ isFirst, ...props }) => {
-  const [{ canDrop, isOver }, drop] = useDrop({
-    accept: "component",
-    drop: (item) => ({
-      ...item,
-    }),
-    collect: (monitor: any) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  });
-
-  return (
-    <StyledDropZone {...props} ref={drop} isOver={isOver} isFirst={isFirst} />
-  );
-};
+/**
+ *
+ * TODO:
+ * - add onclick and selected style handlers to the reorderListItem
+ *
+ */
+const List: FC = (props) => <ul className="pl-3 list-none" {...props} />;
 
 export const ComponentHeirarchy: FC<{
   components: ComponentInstance[];
-  isRoot?: boolean;
-  isDraggingThis?: boolean;
-}> = ({ components, isRoot = false, isDraggingThis }) => {
-  const {
-    selectedComponent,
-    selectComponent,
-    getComponentsById,
-  } = useLayoutEditor();
-  const { isDragging, setDragging, draggingComponent } = useContext(
-    heirarchyContext
-  );
+  rootId?: string;
+}> = ({ components, rootId = "root" }) => {
+  const { selectedComponent, selectComponent, layout } = useLayoutEditor();
+  const component = findTreeArrayItemById(components, rootId);
 
-  const showDropZones = !isDraggingThis && isDragging;
+  if (!component) return null;
+
+  if (component.id === "root") {
+    return (
+      <ul>
+        {component.children?.length &&
+          component.children.map((childId) => {
+            return (
+              <ComponentHeirarchy
+                components={components}
+                rootId={childId}
+                key={component.id}
+              />
+            );
+          })}
+      </ul>
+    );
+  }
+  // TODO: Replace rendering with new standard format.
   return (
-    <ul className={`relative ${isDragging ? "" : "pt-1 mb-1"}`}>
-      {showDropZones && <DropZone isFirst />}
-      {(isRoot
-        ? components.filter(({ parentId }) => parentId === "root")
-        : components
-      ).map((comp, index, list) => {
-        return (
-          <>
-            <ComponentHeirarchyItem
-              isSelected={comp.id === selectedComponent}
-              component={comp}
-              onClick={(e: any) => {
-                e.stopPropagation();
-                selectComponent(comp.id);
-              }}
-            >
-              {comp.name || `[${comp.componentType}]`}
-              {comp.children.length ? (
-                <>
+    <DraggableDropzone
+      item={component}
+      treeArray={layout.components}
+      enabledDropPositions={[
+        DropPosition.top,
+        DropPosition.bottom,
+        DropPosition.inside,
+      ]}
+    >
+      {({ ref, dropPosition, onDragLeave, onDragOver }) => (
+        <ComponentHeirarchyItem
+          ref={ref}
+          onDragLeave={onDragLeave}
+          onDragOver={onDragOver}
+          isSelected={component.id === selectedComponent}
+          hoverPosition={dropPosition}
+          onClick={(e) => {
+            e.stopPropagation();
+
+            selectComponent(component.id);
+          }}
+        >
+          {component.name ?? component.componentType}
+          {(component.children?.length && (
+            <List>
+              {component.children.map((childId) => {
+                return (
                   <ComponentHeirarchy
-                    components={getComponentsById(comp.children)}
-                    isDraggingThis={comp.id === draggingComponent?.id}
+                    key={component.id}
+                    components={components}
+                    rootId={childId}
                   />
-                </>
-              ) : null}
-            </ComponentHeirarchyItem>
-            {showDropZones && <DropZone />}
-          </>
-        );
-      })}
-    </ul>
+                );
+              })}
+            </List>
+          )) ||
+            null}
+        </ComponentHeirarchyItem>
+      )}
+    </DraggableDropzone>
   );
 };

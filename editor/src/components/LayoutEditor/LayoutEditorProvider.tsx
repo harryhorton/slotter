@@ -12,6 +12,11 @@ import {
   useReducer,
 } from "react";
 import { v1 as uuid } from "uuid";
+import {
+  injectTreeArrayItem,
+  moveTreeArrayItem,
+  removeTreeArrayItem,
+} from "../../utils/layoutUtils";
 import { sampleLayout } from "./__fixtures__";
 
 enum LayoutActionType {
@@ -34,7 +39,7 @@ type LayoutAction =
   | {
       type: LayoutActionType.ADD_COMPONENT;
       payload: {
-        component: ComponentInstanceWithoutId;
+        component: ComponentInstance;
         index?: number;
       };
     }
@@ -50,8 +55,8 @@ type LayoutAction =
       type: LayoutActionType.MOVE_COMPONENT;
       payload: {
         parentId: string;
-        componentId: ComponentInstance;
-        index: number;
+        componentId: string;
+        index?: number;
       };
     };
 
@@ -64,15 +69,15 @@ interface LayoutEditorContext extends LayoutState {
   selectComponent: (componentId: string) => void;
   deselectAllComponents: () => void;
   addComponent: (payload: {
-    component: ComponentInstanceWithoutId;
+    component: ComponentInstance;
     index?: number;
   }) => void;
   updateComponent: (component: ComponentInstance) => void;
   deleteComponent: (componentId: string) => void;
   moveComponent: (payload: {
     parentId: string;
-    componentId: ComponentInstance;
-    index: number;
+    componentId: string;
+    index?: number;
   }) => void;
   getComponentById: (id: string) => ComponentInstance | undefined;
   getComponentsById: (ids: string[]) => ComponentInstance[];
@@ -108,67 +113,6 @@ const replaceComponent = (
   });
 };
 
-const addComponent = ({
-  component,
-  index,
-  components,
-}: {
-  component: ComponentInstanceWithoutId;
-  index?: number;
-  components: ComponentInstance[];
-}) => {
-  const newComponent: ComponentInstance = {
-    id: uuid(),
-    ...component,
-  };
-
-  if (component.parentId === "root") {
-    return components.concat(newComponent);
-  }
-
-  const parent = getComponentById(component.parentId, components);
-  if (!parent) throw new Error("Unable to find component");
-  console.log(
-    "result",
-    index,
-    index ?? (parent.children.length === 0 ? 0 : parent.children.length)
-  );
-  parent.children.splice(
-    index ?? (parent.children.length === 0 ? 0 : parent.children.length),
-    0,
-    newComponent.id
-  );
-
-  const componentsWithUpdatedParent = replaceComponent(
-    { ...parent, children: [...parent.children] },
-    components
-  );
-
-  return componentsWithUpdatedParent.concat(newComponent);
-};
-
-const deleteComponent = (id: string, components: ComponentInstance[]) => {
-  return components
-    .filter((currentComponent) => {
-      // Delete component
-      // delete component's children
-      return currentComponent?.parentId !== id && currentComponent?.id !== id;
-    })
-    .map((currentComponent) => {
-      // Delete as child reference
-      if (currentComponent.children.includes(id)) {
-        return {
-          ...currentComponent,
-          children: currentComponent.children.filter(
-            (childId) => childId !== id
-          ),
-        };
-      }
-
-      return currentComponent;
-    });
-};
-
 const getComponentsById = (ids: string[], components: ComponentInstance[]) =>
   ids
     .map((id) => getComponentById(id, components))
@@ -183,16 +127,16 @@ const LayoutReducer = (state: LayoutState, action: LayoutAction) => {
       return { ...state, selectedComponent: null };
 
     case LayoutActionType.ADD_COMPONENT:
-      const newLayout = {
-        ...state.layout,
-        components: addComponent({
-          ...action.payload,
-          components: state.layout.components,
-        }),
-      };
       return {
         ...state,
-        layout: newLayout,
+        layout: {
+          ...state.layout,
+          components: injectTreeArrayItem(
+            state.layout.components,
+            action.payload.component,
+            action.payload.index
+          ),
+        },
       };
 
     case LayoutActionType.UPDATE_COMPONENT:
@@ -207,12 +151,26 @@ const LayoutReducer = (state: LayoutState, action: LayoutAction) => {
         ...state,
         layout: {
           ...state.layout,
-          components: deleteComponent(action.payload, state.layout.components),
+          components: removeTreeArrayItem(
+            state.layout.components,
+            action.payload
+          ),
         },
       };
 
-    // case LayoutActionType.MOVE_COMPONENT:
-    //   return { ...state, selectedComponent: action.payload };
+    case LayoutActionType.MOVE_COMPONENT:
+      return {
+        ...state,
+        layout: {
+          ...state.layout,
+          components: moveTreeArrayItem(
+            state.layout.components,
+            action.payload.componentId,
+            action.payload.parentId,
+            action.payload.index
+          ),
+        },
+      };
 
     default:
       return state;

@@ -1,11 +1,17 @@
 import React from "react";
+
 import ReactDOM from "react-dom";
 import "./index.css";
 import { App } from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { AppProvider } from "./providers/app";
 import { BrowserRouter } from "react-router-dom";
-
+if (process.env.NODE_ENV === "development") {
+  const whyDidYouRender = require("@welldone-software/why-did-you-render");
+  whyDidYouRender(React, {
+    trackAllPureComponents: false,
+  });
+}
 ReactDOM.render(
   <BrowserRouter>
     <AppProvider>

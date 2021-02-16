@@ -1,68 +1,10 @@
-import {
-  createContext,
-  FC,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { FC, useContext, useMemo, useRef } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import styled from "styled-components";
-import tw from "twin.macro";
-
-// TODO: Make sure parent can't be drug onto child
-
-const reorderListContext = createContext({
-  onOrderChange: (payload: {
-    above: boolean;
-    below: boolean;
-    inside: boolean;
-    item: any;
-    target: any;
-  }) => {},
-  isDragging: false,
-  setIsDragging(value: boolean) {},
-});
-
-export const ReorderListProvider: FC<{
-  onOrderChange: (value: any) => void;
-}> = ({ onOrderChange, children }) => {
-  const [isDragging, setIsDragging] = useState(false);
-  return (
-    <reorderListContext.Provider
-      value={{ onOrderChange, isDragging, setIsDragging }}
-    >
-      {children}
-    </reorderListContext.Provider>
-  );
-};
-
-export interface ReorderListProps {}
-
-export const ReorderList: FC<ReorderListProps> = ({ children, ...props }) => {
-  return (
-    <ul className="" {...props}>
-      {children}
-    </ul>
-  );
-};
-
-const StyledReorderListItem = styled.li<{
-  isTop: boolean;
-  isBottom: boolean;
-  isInside: boolean;
-  isHoveringChild: boolean;
-}>(({ isTop, isInside, isBottom, isHoveringChild }) => [
-  !isHoveringChild && isTop && tw`border-t border-blue-500`,
-  !isHoveringChild && isBottom && tw`border-b border-blue-500`,
-  !isHoveringChild && isInside && tw`border border-blue-500`,
-]);
-
-const hierarchyContext = createContext({
-  setParentIsHoveringChild(value: boolean) {},
-});
-
-const DRAG_EDGES_THRESHHOLD = 7;
+import { hierarchyContext } from "./HierarchyContext";
+import { reorderListContext } from "./ReorderListContext";
+import { DropPosition } from "./stateMachine";
+import { StyledReorderListItem } from "./styled";
+import { hoverEventToPosition } from "./utils";
 
 export const ReorderListItem: FC<{
   item: any;
@@ -72,107 +14,111 @@ export const ReorderListItem: FC<{
     inside: boolean;
     item: any;
   }) => void;
-}> = ({ children, item, ...props }) => {
-  const [isTop, setisTop] = useState(false);
-  const [isBottom, setisBottom] = useState(false);
-  const [isInside, setIsInside] = useState(false);
-  const [isHoveringChild, setIsHoveringChild] = useState(false);
-  const { setParentIsHoveringChild } = useContext(hierarchyContext);
-  const { onOrderChange, setIsDragging, isDragging } = useContext(
-    reorderListContext
-  );
+}> = ({ children, item }) => {
+  const { isInDragHierarchy } = useContext(hierarchyContext);
+  const { state, send, idKey, onOrderChange } = useContext(reorderListContext);
 
-  useEffect(() => {
-    setisTop(false);
-    setisBottom(false);
-    setIsInside(false);
-    setParentIsHoveringChild(false);
-    console.log("triggered reset");
-  }, [isDragging, setParentIsHoveringChild]);
+  const isDraggingThis = state.context?.dragItem?.[idKey] === item[idKey];
+  const isHoveringThis = state.context?.dropTarget?.[idKey] === item[idKey];
+  const isDropZone =
+    !state.matches("idle") && !isDraggingThis && !isInDragHierarchy;
 
-  const [{ canDrop, isOver }, drop] = useDrop({
+  const [{ isOver }, drop] = useDrop({
     accept: "component",
-    drop: (item) => ({
-      ...item,
-    }),
-    collect: (monitor: any) => ({
-      isOver: monitor.isOver(),
-      canDrop: monitor.canDrop(),
-    }),
-  });
-  const [, drag] = useDrag({
-    item: { type: "component", item },
-    begin(monitor) {
-      setIsDragging(true);
-    },
-    end(item, monitor) {
-      console.log(monitor.getDropResult());
-      setIsDragging(false);
+    collect(monitor) {
+      return {
+        isOver: monitor.isOver(),
+      };
     },
   });
 
-  const handleSetParentIsHoveringChild = useCallback(
-    (value: boolean) => {
-      setIsHoveringChild(value);
-      // Set the parent to hovering child result;
-      setParentIsHoveringChild(value);
+  const [{ isDragging }, drag] = useDrag({
+    item: { type: "component", item },
+    begin() {
+      send({ type: "BEGIN_DRAG", payload: { dragItem: item } });
     },
-    [setParentIsHoveringChild]
-  );
+    end() {
+      // only change if it was dropped on a target
+      const { dragItem, dropPosition, dropTarget } = state.context;
+      if (dropTarget && dropPosition) {
+        onOrderChange({ dragItem, dropPosition, dropTarget });
+      }
+      send({ type: "DROP" });
+    },
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+    }),
+  });
+  /**
+   *
+   *
+   *
+   *     NEXT UP:
+   * - Make sure stories can order to root.
+   * - CONSIDER RENAMING HOVERING TO HOVERINGDROPZONE
+   * - FIGURE OUT DROP EVENT FUNCTIONALITY
+   * - REFACTOR STATE MACHINE ACTIONS AND CONTEXT SETTING
+   * - REFACTOR THIS FILE
+   * - MAKE REORDERING ACTUALLY WORK IN STORYBOOK
+   * - CONSIDER HOW THIS WOULD WORK IN PREVIEW WINDOW
+   */
+
+  const previousDragOverState = useRef<{
+    clientX: number | null;
+    clientY: number | null;
+  }>({ clientX: null, clientY: null });
 
   return (
     <hierarchyContext.Provider
-      value={{
-        // A child calls this
-        setParentIsHoveringChild: handleSetParentIsHoveringChild,
-      }}
+      value={useMemo(
+        () => ({
+          isInDragHierarchy: isInDragHierarchy || isDraggingThis,
+        }),
+        [isDraggingThis, isInDragHierarchy]
+      )}
     >
       <StyledReorderListItem
-        ref={!isDragging ? drag : isHoveringChild ? null : drop}
-        isTop={isTop}
-        isBottom={isBottom}
-        isHoveringChild={isHoveringChild}
-        isInside={isInside}
-        onDragLeave={(e) => {
-          if (!isDragging) return;
-          console.log("leaving", e.currentTarget.textContent);
-          setisTop(false);
-          setisBottom(false);
-          setIsInside(false);
-          setParentIsHoveringChild(false);
-        }}
-        onDragEnter={(e) => {
-          if (!isDragging) return;
-          console.log("entering", e.currentTarget.textContent);
-          setParentIsHoveringChild(true);
-        }}
-        onDragOver={({ clientX, clientY, currentTarget, ...e }) => {
-          if (!isDragging) return;
-          if (isHoveringChild) return;
-          setParentIsHoveringChild(true);
+        ref={state.matches("idle") ? drag : isDropZone ? drop : null}
+        style={{ opacity: isDragging ? 0.5 : 1 }}
+        hoverPosition={
+          isDropZone && isHoveringThis && state.context.dropPosition
+        }
+        onDragOver={(event) => {
+          // prevents drop animation from html5 backend...
+          event.preventDefault();
+          // Prevent parent from handling
+          event.stopPropagation();
+          if (!isDropZone) return;
+          /**
+           * Prevent continuously calling by caching mouse position
+           */
+          if (
+            previousDragOverState.current.clientX === event.clientX &&
+            previousDragOverState.current.clientY === event.clientY
+          ) {
+            return;
+          }
 
-          var { offsetTop } = currentTarget;
-          const itemHeight = currentTarget.clientHeight;
-          const mousePositionInRect = clientY - offsetTop;
-          if (mousePositionInRect < DRAG_EDGES_THRESHHOLD && !isTop) {
-            setisTop(true);
-            setisBottom(false);
-            setIsInside(false);
-          } else if (
-            mousePositionInRect >= itemHeight - DRAG_EDGES_THRESHHOLD &&
-            !isBottom
-          ) {
-            setisTop(false);
-            setisBottom(true);
-            setIsInside(false);
-          } else if (
-            mousePositionInRect >= DRAG_EDGES_THRESHHOLD &&
-            mousePositionInRect < itemHeight - DRAG_EDGES_THRESHHOLD &&
-            !isInside
-          ) {
-            setisTop(false);
-            setisBottom(false);
-            setIsInside(true);
+          previousDragOverState.current.clientX = event.clientX;
+          previousDragOverState.current.clientY = event.clientY;
+
+          let dropPosition: DropPosition = hoverEventToPosition(event);
+
+          // only update if position has changed
+          if (state.context.dropPosition !== dropPosition) {
+            send({
+              type: "HOVER",
+              payload: {
+                dropTarget: item,
+                dropPosition,
+              },
+            });
+          }
+        }}
+        onDragLeave={(e) => {
+          if (!isDropZone) return;
+          if (!isOver) {
+            send({ type: "DRAG" });
           }
         }}
       >
@@ -181,3 +127,6 @@ export const ReorderListItem: FC<{
     </hierarchyContext.Provider>
   );
 };
+
+//@ts-ignore
+ReorderListItem.whyDidYouRender = true;
