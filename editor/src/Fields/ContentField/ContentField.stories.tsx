@@ -2,7 +2,7 @@ import { FC } from "react";
 import { ContentField } from "./ContentField";
 
 export default {
-  title: "Components/ContentField",
+  title: "FieldTypes/ContentField",
   component: ContentField,
 };
 

@@ -21,12 +21,15 @@ const sampleSidebar: AppSidebarInstance = {
       children: [
         {
           label: "child ",
+          link: { to: "#" },
         },
         {
           label: "child ",
+          link: { to: "#" },
         },
         {
           label: "child ",
+          link: { to: "#" },
         },
       ],
     },

@@ -2,7 +2,7 @@ import { FC } from "react";
 import { TagField } from "./TagField";
 
 export default {
-  title: "Components/TagField",
+  title: "FieldTypes/TagField",
   component: TagField,
 };
 

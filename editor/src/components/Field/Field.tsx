@@ -1,6 +1,6 @@
 import { FC, useEffect } from "react";
 import { FieldProps } from "@slotter/types";
-import { TextField } from "../TextField";
+import { TextField } from "../../Fields/TextField";
 
 interface IFieldComponentProps extends FieldProps<any> {}
 

@@ -2,7 +2,7 @@ import { FC } from "react";
 import { FieldGroup } from "./FieldGroup";
 
 export default {
-  title: "Components/FieldGroup",
+  title: "FieldTypes/FieldGroup",
   component: FieldGroup,
 };
 

@@ -2,7 +2,7 @@ import { FC } from "react";
 import { ConditionalField } from "./ConditionalField";
 
 export default {
-  title: "Components/ConditionalField",
+  title: "FieldTypes/ConditionalField",
   component: ConditionalField,
 };
 

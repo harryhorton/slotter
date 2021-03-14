@@ -2,7 +2,7 @@ import { FC } from "react";
 import { SelectField } from "./SelectField";
 
 export default {
-  title: "Components/SelectField",
+  title: "FieldTypes/SelectField",
   component: SelectField,
 };
 

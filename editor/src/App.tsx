@@ -1,4 +1,6 @@
 import React, { FC } from "react";
+import { AppHeader } from "./components/AppHeader";
+import { AppPage } from "./components/AppPage";
 import { AppSidebar } from "./components/AppSidebar";
 import { useAppContext } from "./providers/app";
 import { Router } from "./router";
@@ -9,14 +11,16 @@ export const App: FC = () => {
 
   return (
     <div className="text-gray-900 h-screen flex flex-col">
-      <header className="bg-gray-200 py-2 px-4">app header</header>
+      <AppHeader />
       <main className="flex flex-1">
         <AppSidebar sidebar={sidebar} />
-        <article className="py-2 px-4">
+        <AppPage>
           <Router />
-        </article>
+        </AppPage>
       </main>
-      <footer className="bg-gray-100  py-1 px-4">app footer</footer>
+      <footer className="bg-white border-t border-gray-100 mx-4 py-1 text-sm">
+        app footer
+      </footer>
     </div>
   );
 };

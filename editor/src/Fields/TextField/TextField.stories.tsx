@@ -2,7 +2,7 @@ import { FC } from "react";
 import { TextField } from "./TextField";
 
 export default {
-  title: "Components/TextField",
+  title: "FieldTypes/TextField",
   component: TextField,
 };
 

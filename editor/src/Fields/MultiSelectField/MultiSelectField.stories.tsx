@@ -2,7 +2,7 @@ import { FC } from "react";
 import { MultiSelectField } from "./MultiSelectField";
 
 export default {
-  title: "Components/MultiSelectField",
+  title: "FieldTypes/MultiSelectField",
   component: MultiSelectField,
 };
 

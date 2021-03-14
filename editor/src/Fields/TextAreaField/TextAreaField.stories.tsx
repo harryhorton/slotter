@@ -2,7 +2,7 @@ import { FC } from "react";
 import { TextAreaField } from "./TextAreaField";
 
 export default {
-  title: "Components/TextAreaField",
+  title: "FieldTypes/TextAreaField",
   component: TextAreaField,
 };
 

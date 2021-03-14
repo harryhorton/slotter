@@ -2,7 +2,7 @@ import { FC } from "react";
 import { ToggleField } from "./ToggleField";
 
 export default {
-  title: "Components/ToggleField",
+  title: "FieldTypes/ToggleField",
   component: ToggleField,
 };
 

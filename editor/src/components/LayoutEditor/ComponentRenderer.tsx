@@ -12,7 +12,7 @@ import {
   DraggableDropzone,
   DropPosition,
 } from "../Draggable";
-import { TextComponent } from "../TextComponent";
+import { TextComponent } from "../../LayoutComponents/TextComponent";
 import { ComponentRightClickMenu } from "./ComponentRightClickMenu";
 import { useLayoutEditor } from "./LayoutEditorProvider";
 

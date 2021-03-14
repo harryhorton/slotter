@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Field } from "./Field";
 
 export default {
-  title: "Components/Field",
+  title: "FieldTypes/Field",
   component: Field,
 };
 

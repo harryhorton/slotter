@@ -5,12 +5,12 @@ import {
   AppSidebarInstance,
   ComponentType,
 } from "@slotter/types";
-import { TextComponentType } from "../components/TextComponent";
+import { TextComponentType } from "../LayoutComponents/TextComponent";
 import { AppState } from "../providers/app";
 
 const fieldTypes: FieldType[] = [{ id: "text" }];
 
-const pageDocumentType: DocumentType = {
+export const pageDocumentType: DocumentType = {
   id: "page",
   label: "Page",
   labelPlural: "Pages",

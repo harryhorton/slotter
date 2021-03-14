@@ -9,9 +9,9 @@ interface IAppSidebarProps {
 export const AppSidebar: FC<IAppSidebarProps> = ({ sidebar }) => {
   const { items } = sidebar;
   return (
-    <aside className="bg-blue-100  py-2 px-4">
+    <aside className="bg-white border-r border-gray-100 my-3 pl-6 pr-4">
       <nav>
-        <ul>
+        <ul className="-mt-1">
           {items.map((item) => {
             return <SidebarItem item={item} />;
           })}
