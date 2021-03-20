@@ -46,9 +46,17 @@ export class ServiceHandler {
       );
     }
 
-    this.serviceTypes = [...this.serviceTypes, serviceType];
+    this.serviceTypes = [
+      ...this.serviceTypes,
+      {
+        ...serviceType,
+      },
+    ];
   }
-  registerServiceInstanceConfig(instanceConfig: ServiceInstanceConfig) {
+  registerServiceInstanceConfig(
+    instanceConfig: Partial<ServiceInstanceConfig> &
+      Pick<ServiceInstanceConfig, "id" | "serviceType">
+  ) {
     if (this.getServiceInstanceConfig(instanceConfig.id)) {
       throw new Error(
         `ServiceInstance with id ${instanceConfig.id} has already been registered`
@@ -57,7 +65,10 @@ export class ServiceHandler {
 
     this.serviceInstanceConfigs = [
       ...this.serviceInstanceConfigs,
-      instanceConfig,
+      {
+        config: {},
+        ...instanceConfig,
+      },
     ];
   }
 
@@ -88,7 +99,10 @@ export class ServiceHandler {
 
     const newService = cloneObject(serviceType);
     newService.id = instance.id;
-    newService.config = cloneObject(instance.config);
+    newService.config = {
+      ...cloneObject(serviceType.config),
+      ...cloneObject(instance.config),
+    };
 
     this.services = [...this.services, newService];
   }
@@ -134,12 +148,25 @@ export class ServiceHandler {
 
       return {
         ...context,
+        serviceHandler: this,
         setState: (state: Partial<Service["state"]>) => {
           const service = this.services.find((iter) => iter.id === id);
           if (!service) throw new Error("service not found");
 
           Object.assign(service.state, { ...service.state, ...state });
           return service.state;
+        },
+        setInstanceVariables: (
+          variables: Partial<Service["instanceVariables"]>
+        ) => {
+          const service = this.services.find((iter) => iter.id === id);
+          if (!service) throw new Error("service not found");
+
+          Object.assign(service.instanceVariables, {
+            ...service.instanceVariables,
+            ...variables,
+          });
+          return service.instanceVariables;
         },
       };
     };
